@@ -23,8 +23,8 @@ dependencies:
     specifier: ^2.0.0
     version: 2.0.0
   cmdk-sv:
-    specifier: ^0.0.4
-    version: 0.0.4(svelte@4.2.2)
+    specifier: ^0.0.5
+    version: 0.0.5(svelte@4.2.2)
   d3-scale:
     specifier: ^4.0.2
     version: 4.0.2
@@ -1917,8 +1917,8 @@ packages:
     engines: {node: '>=6'}
     dev: false
 
-  /cmdk-sv@0.0.4(svelte@4.2.2):
-    resolution: {integrity: sha512-kUezs3PfP1uRnLXk1vlqebKf8uGl4Qap4UBxh9g7b5HZQStk8xJ1lZ0CNnr/uWCYSKWS03y/Ugj2urirVE8aPA==}
+  /cmdk-sv@0.0.5(svelte@4.2.2):
+    resolution: {integrity: sha512-knOCoH4uxhICfz9SX5eK8iAmd12LQSlIVA7/fBjjnD07OAuqT8JpgPFx9i/QAvq15ZtMJSWZnUypyb1CsAHE7A==}
     peerDependencies:
       svelte: ^4.0.0
     dependencies:

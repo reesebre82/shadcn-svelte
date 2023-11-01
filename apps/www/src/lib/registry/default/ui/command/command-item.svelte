@@ -14,6 +14,8 @@
 		className
 	)}
 	{...$$restProps}
+	let:action
+	let:attrs
 >
-	<slot />
+	<slot {action} {attrs} />
 </CommandPrimitive.Item>
