@@ -5,6 +5,10 @@
 
 	let className: string | undefined | null = undefined;
 	export { className as class };
+
+	const condA = true;
+	const condB = false;
+	const condC = true;
 </script>
 
 <a
@@ -20,3 +24,5 @@
 	<span class="hidden sm:inline"> New components, cli updates and more. </span>
 	<Icons.arrowRight class="ml-1 h-4 w-4" />
 </a>
+
+<div class={condA ? "sr-only" : condB ? "skndknd" : condC ? "sknskndknd" : "dkndkndk"} />

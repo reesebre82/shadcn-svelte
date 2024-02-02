@@ -198,7 +198,8 @@ export const TAILWIND_CONFIG_WITH_VARIABLES = `import { fontFamily } from "tailw
 const config = {
 	darkMode: ["class"],
 	content: ["./src/**/*.{html,js,svelte,ts}"],
-  safelist: ["dark"],
+  	safelist: ["dark"],
+	prefix: "<%- prefix %>",
 	theme: {
 		container: {
 			center: true,
@@ -264,7 +265,8 @@ export const TAILWIND_CONFIG = `import { fontFamily } from "tailwindcss/defaultT
 const config = {
 	darkMode: ["class"],
 	content: ["./src/**/*.{html,js,svelte,ts}"],
-  safelist: ["dark"],
+  	safelist: ["dark"],
+	prefix: "<%- prefix %>",
 	theme: {
 		container: {
 			center: true,

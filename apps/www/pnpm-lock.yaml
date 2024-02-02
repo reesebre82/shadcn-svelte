@@ -4,11 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-patchedDependencies:
-  mdsvex@0.10.6:
-    hash: 5fktxa7rcgmqj2wc4xhmk3osl4
-    path: patches/mdsvex@0.10.6.patch
-
 dependencies:
   '@internationalized/date':
     specifier: ^3.5.1
@@ -99,12 +94,18 @@ devDependencies:
   '@types/escape-html':
     specifier: ^1.0.3
     version: 1.0.3
+  '@types/estree':
+    specifier: ^1.0.1
+    version: 1.0.1
   '@types/lodash.template':
     specifier: ^4.5.2
     version: 4.5.2
   '@types/node':
     specifier: ^18.17.5
     version: 18.17.5
+  '@types/postcss-import':
+    specifier: ^14.0.3
+    version: 14.0.3
   '@types/prettier':
     specifier: ^2.7.2
     version: 2.7.3
@@ -141,12 +142,21 @@ devDependencies:
   lodash.template:
     specifier: ^4.5.0
     version: 4.5.0
+  magic-string:
+    specifier: ^0.30.2
+    version: 0.30.5
   mdsvex:
     specifier: 0.10.6
-    version: 0.10.6(patch_hash=5fktxa7rcgmqj2wc4xhmk3osl4)(svelte@4.2.2)
+    version: 0.10.6(svelte@4.2.2)
   postcss:
     specifier: ^8.4.31
     version: 8.4.31
+  postcss-import:
+    specifier: ^16.0.0
+    version: 16.0.0(postcss@8.4.31)
+  postcss-js:
+    specifier: ^4.0.1
+    version: 4.0.1(postcss@8.4.31)
   postcss-load-config:
     specifier: ^4.0.1
     version: 4.0.1(postcss@8.4.31)
@@ -207,6 +217,9 @@ devDependencies:
   vitest:
     specifier: ^0.34.1
     version: 0.34.6
+  zimmerframe:
+    specifier: ^1.1.0
+    version: 1.1.0
   zod:
     specifier: ^3.22.4
     version: 3.22.4
@@ -1366,6 +1379,12 @@ packages:
   /@types/pbf@3.0.2:
     resolution: {integrity: sha512-EDrLIPaPXOZqDjrkzxxbX7UlJSeQVgah3i0aA4pOSzmK9zq3BIh7/MZIQxED7slJByvKM4Gc6Hypyu2lJzh3SQ==}
     dev: false
+
+  /@types/postcss-import@14.0.3:
+    resolution: {integrity: sha512-raZhRVTf6Vw5+QbmQ7LOHSDML71A5rj4+EqDzAbrZPfxfoGzFxMHRCq16VlddGIZpHELw0BG4G0YE2ANkdZiIQ==}
+    dependencies:
+      postcss: 8.4.31
+    dev: true
 
   /@types/prettier@2.7.3:
     resolution: {integrity: sha512-+68kP9yzs4LMp7VNh8gdzMSPZFL44MLGqiHWvttYJe+6qnuVr4Ek9wSBQoveqY/r+LwjCcU29kNVkidwim+kYA==}
@@ -3606,7 +3625,7 @@ packages:
   /mdn-data@2.0.30:
     resolution: {integrity: sha512-GaqWWShW4kv/G9IEucWScBx9G1/vsFZZJUO+tD26M8J8z3Kw5RDQjaoZe03YAClgeS/SWPOcb4nkFBTEi5DUEA==}
 
-  /mdsvex@0.10.6(patch_hash=5fktxa7rcgmqj2wc4xhmk3osl4)(svelte@4.2.2):
+  /mdsvex@0.10.6(svelte@4.2.2):
     resolution: {integrity: sha512-aGRDY0r5jx9+OOgFdyB9Xm3EBr9OUmcrTDPWLB7a7g8VPRxzPy4MOBmcVYgz7ErhAJ7bZ/coUoj6aHio3x/2mA==}
     peerDependencies:
       svelte: 3.x
@@ -3617,7 +3636,6 @@ packages:
       svelte: 4.2.2
       vfile-message: 2.0.4
     dev: true
-    patched: true
 
   /merge2@1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
@@ -4210,6 +4228,18 @@ packages:
       postcss-value-parser: 4.2.0
       read-cache: 1.0.0
       resolve: 1.22.2
+
+  /postcss-import@16.0.0(postcss@8.4.31):
+    resolution: {integrity: sha512-e77lhVvrD1I2y7dYmBv0k9ULTdArgEYZt97T4w6sFIU5uxIHvDFQlKgUUyY7v7Barj0Yf/zm5A4OquZN7jKm5Q==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      postcss: ^8.0.0
+    dependencies:
+      postcss: 8.4.31
+      postcss-value-parser: 4.2.0
+      read-cache: 1.0.0
+      resolve: 1.22.2
+    dev: true
 
   /postcss-js@4.0.1(postcss@8.4.31):
     resolution: {integrity: sha512-dDLF8pEO191hJMtlHFPRa8xsizHaM82MLfNkUHdUtVEV3tgTp5oj+8qbEqYM57SLfc74KSbw//4SeJma2LRVIw==}
@@ -5509,6 +5539,10 @@ packages:
   /yocto-queue@1.0.0:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
+    dev: true
+
+  /zimmerframe@1.1.0:
+    resolution: {integrity: sha512-+AmV37r9NPUy7KcuG0Fde9AAFSD88kN5pnqvD7Pkp5WLLK0jct7hAtIDXXFDCRk3l5Mc1r2Sth3gfP2ZLE+/Qw==}
     dev: true
 
   /zod@3.22.4:
