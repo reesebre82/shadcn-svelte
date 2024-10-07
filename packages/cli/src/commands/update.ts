@@ -6,7 +6,6 @@ import { Command } from "commander";
 import { execa } from "execa";
 import * as v from "valibot";
 import { type Config, getConfig } from "../utils/get-config.js";
-import { getPackageManager } from "../utils/get-package-manager.js";
 import { error, handleError } from "../utils/errors.js";
 import { fetchTree, getItemTargetPath, getRegistryIndex, resolveTree } from "../utils/registry";
 import { UTILS, UTILS_JS } from "../utils/templates.js";
@@ -14,6 +13,7 @@ import { transformImports } from "../utils/transformers.js";
 import * as p from "../utils/prompts.js";
 import { intro, prettifyList } from "../utils/prompt-helpers.js";
 import { getEnvProxy } from "../utils/get-env-proxy.js";
+import { detectPM } from "../utils/auto-detect.js";
 
 const highlight = (msg: string) => color.bold.cyan(msg);
 
@@ -25,20 +25,16 @@ const updateOptionsSchema = v.object({
 	yes: v.boolean(),
 });
 
-type UpdateOptions = v.Output<typeof updateOptionsSchema>;
+type UpdateOptions = v.InferOutput<typeof updateOptionsSchema>;
 
 export const update = new Command()
 	.command("update")
 	.description("update components in your project")
 	.argument("[components...]", "name of components")
-	.option("-a, --all", "update all existing components.", false)
-	.option("-y, --yes", "skip confirmation prompt.", false)
-	.option("--proxy <proxy>", "fetch components from registry using a proxy.", getEnvProxy())
-	.option(
-		"-c, --cwd <cwd>",
-		"the working directory. defaults to the current directory.",
-		process.cwd()
-	)
+	.option("-c, --cwd <cwd>", "the working directory", process.cwd())
+	.option("-a, --all", "update all existing components", false)
+	.option("-y, --yes", "skip confirmation prompt", false)
+	.option("--proxy <proxy>", "fetch components from registry using a proxy", getEnvProxy())
 	.action(async (components, opts) => {
 		intro();
 
@@ -219,24 +215,30 @@ async function runUpdate(cwd: string, config: Config, options: UpdateOptions) {
 					componentsToRemove[item.name] = filesToDelete;
 				}
 
-				const componentPath = path.relative(process.cwd(), path.resolve(targetDir, item.name));
+				const componentPath = path.relative(
+					process.cwd(),
+					path.resolve(targetDir, item.name)
+				);
 				return `${highlight(item.name)} updated at ${color.gray(componentPath)}`;
 			},
 		});
 	}
 
 	// Install dependencies.
-	tasks.push({
-		title: "Installing package dependencies",
-		enabled: dependencies.size > 0,
-		async task() {
-			const packageManager = await getPackageManager(cwd);
-			await execa(packageManager, ["add", ...dependencies], {
-				cwd,
-			});
-			return "Dependencies installed";
-		},
-	});
+	const commands = await detectPM(cwd, true);
+	if (commands) {
+		const [pm, add] = commands.add.split(" ") as [string, string];
+		tasks.push({
+			title: `${highlight(pm)}: Installing dependencies`,
+			enabled: dependencies.size > 0,
+			async task() {
+				await execa(pm, [add, ...dependencies], {
+					cwd,
+				});
+				return `Dependencies installed with ${highlight(pm)}`;
+			},
+		});
+	}
 
 	await p.tasks(tasks);
 

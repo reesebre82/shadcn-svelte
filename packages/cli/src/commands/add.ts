@@ -7,7 +7,6 @@ import { execa } from "execa";
 import * as v from "valibot";
 import { type Config, getConfig } from "../utils/get-config.js";
 import { getEnvProxy } from "../utils/get-env-proxy.js";
-import { getPackageManager } from "../utils/get-package-manager.js";
 import { ConfigError, error, handleError } from "../utils/errors.js";
 import {
 	fetchTree,
@@ -19,6 +18,7 @@ import {
 import { transformImports } from "../utils/transformers.js";
 import * as p from "../utils/prompts.js";
 import { intro, prettifyList } from "../utils/prompt-helpers.js";
+import { detectPM } from "../utils/auto-detect.js";
 
 const highlight = (...args: unknown[]) => color.bold.cyan(...args);
 
@@ -29,27 +29,23 @@ const addOptionsSchema = v.object({
 	overwrite: v.boolean(),
 	cwd: v.string(),
 	path: v.optional(v.string()),
-	nodep: v.boolean(),
+	deps: v.boolean(),
 	proxy: v.optional(v.string()),
 });
 
-type AddOptions = v.Output<typeof addOptionsSchema>;
+type AddOptions = v.InferOutput<typeof addOptionsSchema>;
 
 export const add = new Command()
 	.command("add")
 	.description("add components to your project")
 	.argument("[components...]", "name of components")
-	.option("--nodep", "skips adding & installing package dependencies.", false)
-	.option("-a, --all", "install all components to your project.", false)
-	.option("-y, --yes", "skip confirmation prompt.", false)
-	.option("-o, --overwrite", "overwrite existing files.", false)
-	.option("--proxy <proxy>", "fetch components from registry using a proxy.", getEnvProxy())
-	.option(
-		"-c, --cwd <cwd>",
-		"the working directory. defaults to the current directory.",
-		process.cwd()
-	)
-	.option("-p, --path <path>", "the path to add the component to.")
+	.option("-c, --cwd <cwd>", "the working directory", process.cwd())
+	.option("--no-deps", "skips adding & installing package dependencies")
+	.option("-a, --all", "install all components to your project", false)
+	.option("-y, --yes", "skip confirmation prompt", false)
+	.option("-o, --overwrite", "overwrite existing files", false)
+	.option("--proxy <proxy>", "fetch components from registry using a proxy", getEnvProxy())
+	.option("-p, --path <path>", "the path to add the component to")
 	.action(async (components, opts) => {
 		try {
 			intro();
@@ -87,14 +83,21 @@ async function runAdd(cwd: string, config: Config, options: AddOptions) {
 
 	const registryIndex = await getRegistryIndex();
 
-	let selectedComponents = options.all ? registryIndex.map(({ name }) => name) : options.components;
+	let selectedComponents = new Set(
+		options.all ? registryIndex.map(({ name }) => name) : options.components
+	);
 
-	if (selectedComponents === undefined || selectedComponents.length === 0) {
+	const registryDepMap = new Map<string, string[]>();
+	for (const item of registryIndex) {
+		registryDepMap.set(item.name, item.registryDependencies);
+	}
+
+	if (selectedComponents === undefined || selectedComponents.size === 0) {
 		const components = await p.multiselect({
 			message: `Which ${highlight("components")} would you like to install?`,
 			maxItems: 10,
 			options: registryIndex.map(({ name, dependencies, registryDependencies }) => {
-				const deps = [...(options.nodep ? [] : dependencies), ...registryDependencies];
+				const deps = [...(options.deps ? dependencies : []), ...registryDependencies];
 				return {
 					label: name,
 					value: name,
@@ -107,13 +110,19 @@ async function runAdd(cwd: string, config: Config, options: AddOptions) {
 			p.cancel("Operation cancelled.");
 			process.exit(0);
 		}
-		selectedComponents = components;
+		selectedComponents = new Set(components);
 	} else {
-		const prettyList = prettifyList(selectedComponents);
+		const prettyList = prettifyList(Array.from(selectedComponents));
 		p.log.step(`Components to install:\n${color.gray(prettyList)}`);
 	}
 
-	const tree = await resolveTree(registryIndex, selectedComponents);
+	// adds `registryDependency` to `selectedComponents` so that they can be individually overwritten
+	for (const name of selectedComponents) {
+		const regDeps = registryDepMap.get(name);
+		regDeps?.forEach((dep) => selectedComponents.add(dep));
+	}
+
+	const tree = await resolveTree(registryIndex, Array.from(selectedComponents), false);
 	const payload = await fetchTree(config, tree);
 	// const baseColor = await getRegistryBaseColor(config.tailwind.baseColor);
 
@@ -126,7 +135,7 @@ async function runAdd(cwd: string, config: Config, options: AddOptions) {
 	const existingComponents: string[] = [];
 	const targetPath = options.path ? path.resolve(cwd, options.path) : undefined;
 	for (const item of payload) {
-		if (selectedComponents.includes(item.name) === false) continue;
+		if (selectedComponents.has(item.name) === false) continue;
 
 		const targetDir = getItemTargetPath(config, item, targetPath);
 		if (targetDir === null) continue;
@@ -164,7 +173,7 @@ async function runAdd(cwd: string, config: Config, options: AddOptions) {
 
 	if (options.yes === false) {
 		const proceed = await p.confirm({
-			message: `Ready to install ${highlight("components")}${options.nodep ? "?" : ` and ${highlight("dependencies")}?`}`,
+			message: `Ready to install ${highlight("components")}${options.deps ? ` and ${highlight("dependencies")}?` : "?"}`,
 			initialValue: true,
 		});
 
@@ -189,7 +198,7 @@ async function runAdd(cwd: string, config: Config, options: AddOptions) {
 
 		if (!options.overwrite && existingComponents.includes(item.name)) {
 			// Only confirm overwrites for selected components and not transitive dependencies
-			if (selectedComponents.includes(item.name)) {
+			if (selectedComponents.has(item.name)) {
 				p.log.warn(
 					`Component ${highlight(item.name)} already exists at ${color.gray(componentPath)}`
 				);
@@ -205,10 +214,10 @@ async function runAdd(cwd: string, config: Config, options: AddOptions) {
 		}
 
 		// Add dependencies to the install list
-		if (options.nodep) {
-			item.dependencies.forEach((dep) => skippedDeps.add(dep));
-		} else {
+		if (options.deps) {
 			item.dependencies.forEach((dep) => dependencies.add(dep));
+		} else {
+			item.dependencies.forEach((dep) => skippedDeps.add(dep));
 		}
 
 		// Install Component
@@ -235,21 +244,24 @@ async function runAdd(cwd: string, config: Config, options: AddOptions) {
 	}
 
 	// Install dependencies.
-	tasks.push({
-		title: "Installing package dependencies",
-		enabled: dependencies.size > 0,
-		async task() {
-			const packageManager = await getPackageManager(cwd);
-			await execa(packageManager, ["add", ...dependencies], {
-				cwd,
-			});
-			return "Dependencies installed";
-		},
-	});
+	const commands = await detectPM(cwd, options.deps);
+	if (commands) {
+		const [pm, add] = commands.add.split(" ") as [string, string];
+		tasks.push({
+			title: `${highlight(pm)}: Installing dependencies`,
+			enabled: dependencies.size > 0,
+			async task() {
+				await execa(pm, [add, ...dependencies], {
+					cwd,
+				});
+				return `Dependencies installed with ${highlight(pm)}`;
+			},
+		});
+	}
 
 	await p.tasks(tasks);
 
-	if (options.nodep) {
+	if (!options.deps) {
 		const prettyList = prettifyList([...skippedDeps], 7);
 		p.log.warn(
 			`Components have been installed ${color.bold.red("without")} the following ${highlight("dependencies")}:\n${color.gray(prettyList)}`

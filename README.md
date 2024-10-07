@@ -1,9 +1,11 @@
 <p align="center">
- <img align="center" src="https://raw.githubusercontent.com/huntabyte/shadcn-svelte/main/apps/www/static/android-chrome-192x192.png" height="96" />
+ <img align="center" src="https://raw.githubusercontent.com/huntabyte/shadcn-svelte/main/sites/docs/static/android-chrome-192x192.png" height="96" />
  <h1 align="center">
   shadcn-svelte
  </h1>
 </p>
+
+[![](https://dcbadge.vercel.app/api/server/fdXy3Sk8Gq?style=flat)](https://discord.gg/fdXy3Sk8Gq)
 
 [shadcn-svelte](https://www.shadcn-svelte.com/) is an unofficial community-led [Svelte](https://svelte.dev) port of [shadcn/ui](https://ui.shadcn.com/).
 
@@ -11,7 +13,7 @@
 
 Accessible and customizable components that you can copy and paste into your apps. Free. Open Source. **Use this to build your own component library**.
 
-![hero](apps/www/static/og.png)
+![hero](sites/docs/static/og.png)
 
 ## Documentation
 
@@ -39,3 +41,14 @@ Built by [@huntabyte](https://github.com/huntabyte), [CokaKoala](https://github.
 </a>
 
 <!-- /automd -->
+
+## Community
+
+Join the Discord server to ask questions, find collaborators, or just say hi!
+
+<a href="https://discord.gg/fdXy3Sk8Gq" alt="Svecosystem Discord community">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://invidget.switchblade.xyz/fdXy3Sk8Gq">
+  <img alt="Svecosystem Discord community" src="https://invidget.switchblade.xyz/fdXy3Sk8Gq?theme=light">
+</picture>
+</a>

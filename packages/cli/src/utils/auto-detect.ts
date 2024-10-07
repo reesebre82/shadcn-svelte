@@ -1,8 +1,23 @@
 import fs from "node:fs";
 import path from "node:path";
 import ignore, { type Ignore } from "ignore";
+import { type TsConfigResult, getTsconfig } from "get-tsconfig";
+import { detect } from "package-manager-detector";
+import { AGENTS, type Agent, COMMANDS } from "package-manager-detector/agents";
+import * as p from "./prompts.js";
+import { cancel } from "./prompt-helpers.js";
 
-const STYLESHEETS = ["app.css", "app.pcss", "app.postcss", "main.css", "main.pcss", "main.postcss"];
+const STYLESHEETS = [
+	"app.css",
+	"app.pcss",
+	"app.postcss",
+	"main.css",
+	"main.pcss",
+	"main.postcss",
+	"globals.css",
+	"globals.pcss",
+	"globals.postcss",
+];
 const TAILWIND_CONFIGS = [
 	"tailwind.config.js",
 	"tailwind.config.cjs",
@@ -65,4 +80,43 @@ function find(dirPath: string, ignores: { dirPath: string; ig: Ignore }[]): stri
 	}
 
 	return paths;
+}
+
+export type DetectLanguageResult = {
+	config: TsConfigResult;
+	type: "jsconfig.json" | "tsconfig.json";
+};
+
+export function detectLanguage(cwd: string): DetectLanguageResult | undefined {
+	const rootPath = path.resolve(cwd, "package.json");
+	const tsConfig = getTsconfig(rootPath, "tsconfig.json");
+	if (tsConfig !== null) return { type: "tsconfig.json", config: tsConfig };
+
+	const jsConfig = getTsconfig(rootPath, "jsconfig.json");
+	if (jsConfig !== null) return { type: "jsconfig.json", config: jsConfig };
+}
+
+type Options = Array<{ value: Agent | undefined; label: Agent | "None" }>;
+export async function detectPM(cwd: string, prompt: boolean) {
+	let { agent } = await detect({ cwd });
+
+	if (agent === undefined && prompt) {
+		const options: Options = AGENTS.filter((agent) => !agent.includes("@")).map((pm) => ({
+			value: pm,
+			label: pm,
+		}));
+		options.unshift({ label: "None", value: undefined });
+
+		const res = await p.select({
+			message: "Which package manager do you want to use?",
+			options,
+		});
+		if (p.isCancel(res)) {
+			cancel();
+		}
+
+		agent = res;
+	}
+
+	return agent ? COMMANDS[agent] : undefined;
 }

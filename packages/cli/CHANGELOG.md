@@ -1,5 +1,70 @@
 # shadcn-svelte
 
+## 0.13.0
+
+### Minor Changes
+
+- 06a19d8: feat: Added selection prompt for package managers if one cannot be detected
+
+## 0.12.2
+
+### Patch Changes
+
+- e67c1fd: chore: use `package-manager-detector`
+
+## 0.12.1
+
+### Patch Changes
+
+- d43d140: fix: Use correct cwd when syncing SvelteKit projects
+
+## 0.12.0
+
+### Minor Changes
+
+- b6b4601: feat: Added `--no-deps` flag to `init` command
+
+### Patch Changes
+
+- b6b4601: breaking: Changed `--nodep` flag to `--no-deps` for `add` command
+
+## 0.11.1
+
+### Patch Changes
+
+- c2d1ed6: fix: Fixes bug with incorrect flag assignments
+
+## 0.11.0
+
+### Minor Changes
+
+- 6c9b9ee: feat: Added CLI flags for each option for `init`
+- 6c9b9ee: feat: Removed TypeScript prompt in favor of auto detection
+
+## 0.10.7
+
+### Patch Changes
+
+- f201baa: chore: Replaced `node-fetch` for `node-fetch-native`
+
+## 0.10.6
+
+### Patch Changes
+
+- becb41d: chore: Added more http proxy options
+
+## 0.10.5
+
+### Patch Changes
+
+- 2d80e21: chore: Added an overwrite notice for the global stylesheet and tailwind config
+
+## 0.10.4
+
+### Patch Changes
+
+- ba14ef5: fix: Allow a registry dependency to optionally be overwritten
+
 ## 0.10.3
 
 ### Patch Changes
